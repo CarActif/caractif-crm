@@ -8,7 +8,7 @@ import AddVehicle from "./components/AddVehicle";
 import VehicleList from "./components/VehicleList";
 import EditVehicle from "./components/EditVehicle";
 import VehicleDetail from "./components/VehicleDetail";
-import Navbar from "./components/Navbar.jsx";
+import Navbar from "./components/navbar.jsx";
 
 function PrivateRoute({ children }) {
   const [session, setSession] = useState(null);
