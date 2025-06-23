@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f5f0;
+  color: #1a1a1a;
+}
+
+.input {
+  @apply p-2 border rounded w-full;
+}
