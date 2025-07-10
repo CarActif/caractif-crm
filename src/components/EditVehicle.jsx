@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../supabaseClient"; 
 
 export default function EditVehicle() {
   const { id } = useParams();
@@ -665,6 +665,43 @@ export default function EditVehicle() {
             className="input input-bordered w-full"
           />
         </div>
+	{/* Bloc 13 - Photos */}
+<div className="bg-white p-6 shadow-md mb-6 rounded-lg">
+  <h3 className="text-lg font-semibold mb-4">Photos</h3>
+
+  {/* Affichage des photos déjà enregistrées */}
+  {form.photos?.length > 0 ? (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      {form.photos.map((url, index) => (
+        <div key={index} className="relative">
+          <img src={url} alt={`Photo ${index + 1}`} className="rounded-md object-cover w-full h-32" />
+          <button
+            type="button"
+            onClick={() => {
+              const updatedPhotos = form.photos.filter((_, i) => i !== index);
+              setForm((prev) => ({ ...prev, photos: updatedPhotos }));
+            }}
+            className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded"
+          >
+            Supprimer
+          </button>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500 mb-4">Aucune photo enregistrée.</p>
+  )}
+
+  {/* Ajout de nouvelles photos */}
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    onChange={(e) => setImages([...e.target.files])}
+    className="input"
+  />
+</div>
+
         {/* Bloc 12 - Équipements & options */}
 <div className="bg-white p-6 shadow-md mb-6 rounded-lg">
   <h3 className="text-lg font-semibold mb-4">Équipements & options</h3>
