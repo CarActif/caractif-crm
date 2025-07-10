@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -5,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function VehicleList() {
   const [mandats, setMandats] = useState([]);
   const navigate = useNavigate();
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     const fetchMandats = async () => {
@@ -31,12 +33,28 @@ export default function VehicleList() {
     if (!confirm) return;
 
     const { error } = await supabase.from("mandats").delete().eq("id", id);
-    if (error) {
-      alert("Erreur lors de la suppression.");
-    } else {
+    if (!error) {
       setMandats((prev) => prev.filter((m) => m.id !== id));
     }
   };
+
+  const handleStatutChange = async (id, newStatut) => {
+    setUpdatingId(id);
+    const { error } = await supabase
+      .from("mandats")
+      .update({ statut: newStatut })
+      .eq("id", id);
+
+    if (!error) {
+      setMandats((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, statut: newStatut } : m))
+      );
+    }
+
+    setUpdatingId(null);
+  };
+
+  const statuts = ["Mandat signé", "Publié", "Sous offre", "Vendu", "Archivé"];
 
   return (
     <div className="p-6">
@@ -44,19 +62,46 @@ export default function VehicleList() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {mandats.map((mandat) => (
           <div key={mandat.id} className="bg-white p-4 rounded-lg shadow-md border relative">
+            {/* Image de présentation */}
+            <div className="mb-3">
+              <img
+                src={
+                  mandat.photos && mandat.photos.length > 0
+                    ? mandat.photos[0]
+                    : "/no-image-available.png"
+                }
+                alt="Présentation véhicule"
+                className="w-full h-48 object-cover rounded"
+              />
+            </div>
+
             <h2 className="text-lg font-bold">{mandat.marque} {mandat.modele}</h2>
             <p>Finition : {mandat.finition}</p>
             <p>Couleur : {mandat.couleur}</p>
             <p>
-  Mise en circulation :{" "}
-  {mandat.annee
-    ? new Date(mandat.annee).toLocaleDateString("fr-FR")
-    : "—"}
-</p>
+              Mise en circulation :{" "}
+              {mandat.annee
+                ? new Date(mandat.annee).toLocaleDateString("fr-FR")
+                : "—"}
+            </p>
             <p>Prix net vendeur : {mandat.prix_net_vendeur} €</p>
             <p>Commission : {mandat.commission_ttc} €</p>
             <p>Prix affiché : {mandat.prix_affiche} €</p>
-            <p>Statut : {mandat.statut}</p>
+
+            <div className="my-2">
+              <label htmlFor={`statut-${mandat.id}`} className="block text-sm font-medium text-gray-700 mb-1">Statut :</label>
+              <select
+                id={`statut-${mandat.id}`}
+                value={mandat.statut || "En cours"}
+                onChange={(e) => handleStatutChange(mandat.id, e.target.value)}
+                className="border rounded px-2 py-1 w-full"
+                disabled={updatingId === mandat.id}
+              >
+                {statuts.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
 
             <div className="absolute top-4 right-4 flex gap-2">
               <button
