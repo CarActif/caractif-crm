@@ -110,7 +110,8 @@ const updateEntretien = (index, field, value) => {
 };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  console.log('handleSubmit triggered');
     const {
       data: { session },
     } = await supabase.auth.getSession();
