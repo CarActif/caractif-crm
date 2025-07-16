@@ -138,28 +138,36 @@ export default function AddVehicle() {
     setForm(updatedForm);
   };
 
-  const handleImageUpload = async () => {
-    const urls = [];
-    if (!images.length) return urls;
+  // À mettre au début du fichier
+const BUCKET = "mandat-photos"; // Mets ici le nom exact de ton bucket Supabase
 
-    for (let i = 0; i < images.length; i++) {
-      const file = images[i];
-      const fileName = `${Date.now()}-${file.name}`;
+const handleImageUpload = async () => {
+  const urls = [];
+  if (!images.length) return urls;
 
-      const { error: uploadError } = await supabase.storage
-        .from("mandat-photos_url")
-        .upload(`mandats/${fileName}`, file);
+  for (let i = 0; i < images.length; i++) {
+    const file = images[i];
+    const fileName = `${Date.now()}-${file.name}`;
 
-      if (!uploadError) {
-        const { data } = supabase.storage
-          .from("mandat-photos")
-          .getPublicUrl(`mandats/${fileName}`);
-        urls.push(data.publicUrl);
-      }
+    // Upload l’image dans le bucket
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(`mandats/${fileName}`, file);
+
+    if (!uploadError) {
+      // Récupère l’URL publique
+      const { data } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(`mandats/${fileName}`);
+      urls.push(data.publicUrl);
+    } else {
+      console.error("Erreur d’upload Supabase:", uploadError);
     }
+  }
 
-    return urls;
-  };
+  return urls;
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
