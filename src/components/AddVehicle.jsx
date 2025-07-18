@@ -221,6 +221,7 @@ const handleImageUpload = async () => {
       photo_url: uploadedPhotos,
       annee: form.annee ? new Date(form.annee).toISOString() : null,
       user_id: userId,
+      agent_id: userId,
     }]);
 
   if (!error) {
