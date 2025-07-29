@@ -86,6 +86,7 @@ export default function AddVehicle() {
     couleur_interieure: "",
     critair: "",
     motorisation: "",
+    boite_vitesse: "",
     energie: "",
     puissance_fiscale: "",
     puissance_din: "",
