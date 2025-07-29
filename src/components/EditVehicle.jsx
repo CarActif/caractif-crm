@@ -316,6 +316,24 @@ const handleImageUpload = async () => {
                 className="w-full border border-gray-300 rounded-md py-2 px-3"
               />
             </div>
+            {/* Boîte de vitesse */}
+<div className="w-full">
+  <label className="block text-sm font-medium text-gray-700 mb-1">Boîte de vitesse</label>
+  <select
+    name="boite_vitesse"
+    value={form.boite_vitesse || ""}
+    onChange={handleChange}
+    className="w-full border border-gray-300 rounded-md py-2 px-3"
+    required
+  >
+    <option value="">-- Sélectionner --</option>
+    <option value="Manuelle">Manuelle</option>
+    <option value="Automatique">Automatique</option>
+    <option value="Séquentielle">Séquentielle</option>
+    <option value="Autre">Autre</option>
+  </select>
+</div>
+
             {/* Nb portes */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de portes</label>
