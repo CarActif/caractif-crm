@@ -403,11 +403,11 @@ const handleImageUpload = async () => {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              {form.couleur_interieure === "Autre" && (
+              {form.couleur_interieure=== "Autre" && (
                 <input
                   type="text"
                   name="couleur_interieure"
-                  value={form.couleur_interieure || ""}
+                  value={form.couleur_interieure|| ""}
                   onChange={handleChange}
                   placeholder="Précisez la couleur"
                   className="mt-2 w-full border border-gray-300 rounded-md py-2 px-3"
