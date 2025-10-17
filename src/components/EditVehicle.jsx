@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ContactSelect from "./mandate/ContactSelect";
 import { useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
@@ -74,14 +75,15 @@ const departements = [
 export default function EditVehicle() {
   const { id } = useParams();
   const [form, setForm] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [images, setImages] = useState([]);
 
   useEffect(() => {
     const fetchMandat = async () => {
       const { data, error } = await supabase
-        .from("mandats")
-        .select("*")
+    .from("mandats")
+    .select("id, marque, modele, prix_net_vendeur, prix_affiche, commission_ttc, version, finition, annee, kilometrage, boite_vitesse, nb_portes, nb_places, couleur, couleur_interieure, critair, motorisation, energie, puissance_fiscale, puissance_din, departement, photo_url, entretien, garantie, equipements, pneu_av_g, pneu_av_d, pneu_ar_g, pneu_ar_d, plaquettes_av, plaquettes_ar, type_distribution, annee_distribution, huile_moteur, fuite_huile, embrayage, vibrations, commentaire_test, carrosserie, interieur, contact_id, vin, immatriculation, contacts:contact_id(nom_complet)")
         .eq("id", id)
         .single();
 
@@ -89,8 +91,9 @@ export default function EditVehicle() {
         setForm({
           ...data,
           annee: data.annee ? data.annee.slice(0, 10) : "",
-          couleur_interieure: "",
-          couleur_interieure: ""
+          couleur_interieure: data.couleur_interieure || "",
+          vin: data.vin || "",
+          immatriculation: data.immatriculation || ""
         });
       }
     };
@@ -99,6 +102,9 @@ export default function EditVehicle() {
   }, [id]);
 
   if (!form) return <p>Chargement…</p>;
+
+  // Affiche le contact sélectionné si présent
+  const contactSelected = selectedContact || null;
 
   // Menus déroulants numériques
   const nbPortes = [2, 3, 4, 5];
@@ -160,61 +166,66 @@ const handleImageUpload = async () => {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Vérification des champs obligatoires
-  if (!form.marque || !form.modele || !form.prix_net_vendeur || !form.departement) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Champs obligatoires manquants',
-      text: 'Merci de compléter au moins : Marque, Modèle, Prix net vendeur et Département.',
-      confirmButtonColor: '#FFD700'
-    });
-    return;
-  }
+    // Vérification des champs obligatoires
+    if (!form.marque || !form.modele || !form.prix_net_vendeur || !form.departement) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Champs obligatoires manquants',
+        text: 'Merci de compléter au moins : Marque, Modèle, Prix net vendeur et Département.',
+        confirmButtonColor: '#FFD700'
+      });
+      return;
+    }
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
 
-  const userId = session.user.id;
+    const userId = session.user.id;
 
-  let photoUrls = form.photo_url;  // On récupère l'existant par défaut
-  const uploadedPhotos = await handleImageUpload();
+    let photoUrls = form.photo_url || [];
+    const uploadedPhotos = await handleImageUpload();
 
-  // Si une nouvelle photo a été uploadée, on remplace
-  if (uploadedPhotos && uploadedPhotos.length > 0) {
-    photoUrls = uploadedPhotos;
-  }
+    // Si de nouvelles photos ont été uploadées, on les ajoute aux existantes
+    if (uploadedPhotos && uploadedPhotos.length > 0) {
+      photoUrls = [...photoUrls, ...uploadedPhotos];
+    }
 
-  const { error } = await supabase
-    .from("mandats")
-    .update({
-      ...form,
-      photo_url: photoUrls,
-      annee: form.annee ? new Date(form.annee).toISOString() : null,
-      user_id: userId,
-    })
-    .eq("id", id);
+    // On retire la clé 'contacts' de l'objet envoyé à Supabase
+    const { contacts, ...formSansContacts } = form;
 
-  if (!error) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Mandat modifié avec succès',
-      text: 'Les modifications ont bien été enregistrées.',
-      confirmButtonColor: '#20be63'
-    }).then(() => {
-      window.location.href = "/dashboard";
-    });
-  } else {
-    console.error('Erreur lors de la modification :', error.message);
-    Swal.fire({
-      icon: 'error',
-      title: 'Erreur à la modification',
-      text: 'Une erreur est survenue. Veuillez réessayer.',
-      confirmButtonColor: '#FFD700'
-    });
-  }
-};
+    const { error } = await supabase
+      .from("mandats")
+      .update({
+        ...formSansContacts,
+        photo_url: photoUrls,
+        annee: form.annee ? new Date(form.annee).toISOString() : null,
+        user_id: userId,
+        vin: form.vin,
+        immatriculation: form.immatriculation,
+      })
+      .eq("id", id);
+
+    if (!error) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Mandat modifié avec succès',
+        text: 'Les modifications ont bien été enregistrées.',
+        confirmButtonColor: '#20be63'
+      }).then(() => {
+        window.location.href = "/dashboard";
+      });
+    } else {
+      console.error('Erreur lors de la modification :', error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur à la modification',
+        text: 'Une erreur est survenue. Veuillez réessayer.',
+        confirmButtonColor: '#FFD700'
+      });
+    }
+  };
 
 
 
@@ -241,11 +252,55 @@ const handleImageUpload = async () => {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Modifier le mandat</h2>
+      {/* Card Contact */}
+      <div className="rounded-2xl border bg-card p-4 flex flex-col gap-3 mb-6">
+        <h4 className="font-semibold text-lg mb-2">Contact</h4>
+        <ContactSelect
+          value={form.contact_id || ""}
+          onChange={(id, c) => {
+            setForm(f => ({ ...f, contact_id: id }));
+            setSelectedContact(c);
+          }}
+        />
+        {/* Affichage du contact lié (toujours visible, même si pas de sélection) */}
+        <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
+          <span className="font-semibold">Contact lié :</span> {form.contacts && form.contacts.nom_complet ? form.contacts.nom_complet : (form.contact_id ? form.contact_id : 'Aucun')}
+        </div>
+        {contactSelected && (
+          <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
+            <span className="font-semibold">Contact sélectionné :</span> {contactSelected.nom_complet} <span className="text-gray-500">{contactSelected.telephone} {contactSelected.email} {contactSelected.societe}</span>
+          </div>
+        )}
+      </div>
       <form onSubmit={handleSubmit}>
         {/* Bloc 1 - Infos générales */}
         <div className="bg-white rounded-lg p-6 shadow-md mb-6">
           <h3 className="text-lg font-semibold mb-4">Informations générales</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* VIN */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+              <input
+                type="text"
+                name="vin"
+                value={form.vin}
+                onChange={handleChange}
+                placeholder="VIN"
+                className="w-full border border-gray-300 rounded-md py-2 px-3"
+              />
+            </div>
+            {/* Immatriculation */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation</label>
+              <input
+                type="text"
+                name="immatriculation"
+                value={form.immatriculation}
+                onChange={handleChange}
+                placeholder="Immatriculation"
+                className="w-full border border-gray-300 rounded-md py-2 px-3"
+              />
+            </div>
             {/* Marque */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">Marque</label>
@@ -317,23 +372,22 @@ const handleImageUpload = async () => {
               />
             </div>
             {/* Boîte de vitesse */}
-<div className="w-full">
-  <label className="block text-sm font-medium text-gray-700 mb-1">Boîte de vitesse</label>
-  <select
-    name="boite_vitesse"
-    value={form.boite_vitesse || ""}
-    onChange={handleChange}
-    className="w-full border border-gray-300 rounded-md py-2 px-3"
-    required
-  >
-    <option value="">-- Sélectionner --</option>
-    <option value="Manuelle">Manuelle</option>
-    <option value="Automatique">Automatique</option>
-    <option value="Séquentielle">Séquentielle</option>
-    <option value="Autre">Autre</option>
-  </select>
-</div>
-
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Boîte de vitesse</label>
+              <select
+                name="boite_vitesse"
+                value={form.boite_vitesse || ""}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md py-2 px-3"
+                required
+              >
+                <option value="">-- Sélectionner --</option>
+                <option value="Manuelle">Manuelle</option>
+                <option value="Automatique">Automatique</option>
+                <option value="Séquentielle">Séquentielle</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
             {/* Nb portes */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de portes</label>
@@ -430,6 +484,8 @@ const handleImageUpload = async () => {
               </select>
             </div>
           </div>
+          {/* Affichage du contact lié */}
+          <p className="mt-4"><strong>Contact lié :</strong> {form.contacts && form.contacts.nom_complet ? form.contacts.nom_complet : (form.contact_id ? form.contact_id : 'Aucun')}</p>
         </div>
         
         {/* Bloc 2 - Motorisation et puissance */}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ContactSelect from "./mandate/ContactSelect";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -74,6 +75,7 @@ const departements = [
 
 export default function AddVehicle() {
   const [form, setForm] = useState({
+    contact_id: "",
     marque: "",
     modele: "",
     version: "",
@@ -113,6 +115,8 @@ export default function AddVehicle() {
     garantie: "",
     photo_url: [],
     equipements: [],
+    vin: "",
+    immatriculation: "",
   });
   const [images, setImages] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
@@ -178,10 +182,11 @@ const handleImageUpload = async () => {
 
   // Vérification des champs obligatoires
   const champsManquants = [];
-  if (!form.marque) champsManquants.push("Marque");
-  if (!form.modele) champsManquants.push("Modèle");
-  if (!form.prix_net_vendeur) champsManquants.push("Prix net vendeur");
-  if (!form.departement) champsManquants.push("Département");
+    if (!form.contact_id) champsManquants.push("Contact");
+    if (!form.marque) champsManquants.push("Marque");
+    if (!form.modele) champsManquants.push("Modèle");
+    if (!form.prix_net_vendeur) champsManquants.push("Prix net vendeur");
+    if (!form.departement) champsManquants.push("Département");
 
   if (champsManquants.length > 0) {
     Swal.fire({
@@ -213,17 +218,23 @@ const handleImageUpload = async () => {
     pneu_av_d: form.pneu_av_d ? parseInt(form.pneu_av_d) : null,
     pneu_ar_g: form.pneu_ar_g ? parseInt(form.pneu_ar_g) : null,
     pneu_ar_d: form.pneu_ar_d ? parseInt(form.pneu_ar_d) : null,
+    vin: form.vin,
+    immatriculation: form.immatriculation,
   };
 
   const { error } = await supabase
     .from("mandats")
-    .insert([{
-      ...parsedForm,
-      photo_url: uploadedPhotos,
-      annee: form.annee ? new Date(form.annee).toISOString() : null,
-      user_id: userId,
-      agent_id: userId,
-    }]);
+    .insert([
+      {
+        ...parsedForm,
+        photo_url: uploadedPhotos,
+        annee: form.annee ? new Date(form.annee).toISOString() : null,
+        user_id: userId,
+        agent_id: userId,
+        vin: parsedForm.vin,
+        immatriculation: parsedForm.immatriculation,
+      }
+    ]);
 
   if (!error) {
     Swal.fire({
@@ -271,11 +282,43 @@ const handleImageUpload = async () => {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Créer un nouveau mandat</h2>
+      {/* Card Contact */}
+      <div className="rounded-2xl border bg-card p-4 flex flex-col gap-3 mb-6">
+        <h4 className="font-semibold text-lg mb-2">Contact</h4>
+        <ContactSelect
+          value={form.contact_id}
+          onChange={(id) => setForm(f => ({ ...f, contact_id: id }))}
+        />
+      </div>
       <form onSubmit={handleSubmit}>
         {/* Bloc 1 - Informations générales */}
         <div className="bg-white rounded-lg p-6 shadow-md mb-6">
           <h3 className="text-lg font-semibold mb-4">Informations générales</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* VIN */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+              <input
+                type="text"
+                name="vin"
+                value={form.vin}
+                onChange={handleChange}
+                placeholder="VIN"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            {/* Immatriculation */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation</label>
+              <input
+                type="text"
+                name="immatriculation"
+                value={form.immatriculation}
+                onChange={handleChange}
+                placeholder="Immatriculation"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             {/* Marque */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">Marque</label>

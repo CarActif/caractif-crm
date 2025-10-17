@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-
 export default function Navbar() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,8 +29,10 @@ export default function Navbar() {
           <Link to="/list" className="text-white hover:text-[#4ADE80] font-medium transition">
             Mes mandats
           </Link>
-          <Link to="/add" className="text-white hover:text-[#4ADE80] font-medium transition">
-            Ajouter
+          <Link to="/add" className="text-white hover:text-[#4ADE80] font-medium transition flex items-center justify-center w-9 h-9 rounded-full bg-[#4ADE80] bg-opacity-10 hover:bg-opacity-30" aria-label="Ajouter">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" />
+            </svg>
           </Link>
           <button
             onClick={handleLogout}
@@ -72,9 +73,13 @@ export default function Navbar() {
           <Link
             to="/add"
             onClick={() => setMenuOpen(false)}
-            className="text-white hover:text-[#4ADE80] font-medium py-2 border-b border-gray-700"
+            className="flex items-center gap-2 text-white hover:text-[#4ADE80] font-medium py-2 border-b border-gray-700"
+            aria-label="Ajouter"
           >
-            Ajouter
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" />
+            </svg>
+            <span className="sr-only">Ajouter</span>
           </Link>
           <button
             onClick={handleLogout}
